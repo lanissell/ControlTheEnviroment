@@ -1,9 +1,17 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
 public class DirectionArrow : MonoBehaviour
 {
+    [SerializeField]
+    private float _rotationDelay;
+    [SerializeField]
+    private float _rotationAngle;
+    private bool _canRotateCharacter;
+    
     private enum Directions
     {
         Right = 1,
@@ -18,13 +26,22 @@ public class DirectionArrow : MonoBehaviour
     private void Start()
     {
         _direction = (int)_directions;
+        _canRotateCharacter = true;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
+        if (!_canRotateCharacter) return;
         if (!other.TryGetComponent(out CharacterBehaviour characterBehaviour)) return;
-        print(_direction);
-        characterBehaviour.ActivateRotateState(_direction);
+        _canRotateCharacter = false;
+        characterBehaviour.ActivateRotateState(_direction, _rotationAngle);
+        StartCoroutine(RotationDelay());
+    }
+
+    private IEnumerator RotationDelay()
+    {
+        yield return new WaitForSeconds(_rotationDelay);
+        _canRotateCharacter = true;
     }
 
 

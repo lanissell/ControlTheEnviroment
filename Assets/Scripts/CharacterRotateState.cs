@@ -12,7 +12,7 @@ public class CharacterRotateState: BaseCharacterMovingState
     
     public override void DoAction()
     {
-        CharacterTransform.Rotate(CharacterTransform.up * (_rotationSide * Speed));
+        CharacterTransform.Rotate(CharacterTransform.up * (_rotationSide * Speed), Space.World);
     }
-
+ 
 }

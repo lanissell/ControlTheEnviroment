@@ -8,12 +8,8 @@ public class CharacterBehaviour : MonoBehaviour
     [SerializeField]
     private float _movementSpeed;
     [SerializeField]
-    private float _movementSpeedLimit;
-    [SerializeField]
     private float _rotateSpeed;
     [SerializeField]
-    private float _rotateAngle;
-    
     private Rigidbody _rigidbody;
     private Transform _transform;
 
@@ -24,14 +20,15 @@ public class CharacterBehaviour : MonoBehaviour
 
     private void InitStates()
     {
-        _moveForwardState = new CharacterMoveForwardState(_transform, _rigidbody, _movementSpeed, _movementSpeedLimit);
+        _moveForwardState = new CharacterMoveForwardState(_transform, _rigidbody, _movementSpeed);
         _rotateRightState = new CharacterRotateState(_transform, _rotateSpeed);
         _rotateLeftState = new CharacterRotateState(_transform, _rotateSpeed, -1);
     }
     
     private void Start()
     {
-        _rigidbody = GetComponent<Rigidbody>();
+        if (_rigidbody == null)
+            _rigidbody = GetComponent<Rigidbody>();
         _transform = transform;
         InitStates();
         ActivateMoveForwardState();
@@ -42,26 +39,28 @@ public class CharacterBehaviour : MonoBehaviour
         _currentState.DoAction();
     }
 
-    public void ActivateRotateState(int direction)
+    public void ActivateRotateState(int direction, float angle)
     {
         _currentState = direction == 1 ? _rotateRightState : _rotateLeftState;
-        StartCoroutine(WaitRotation());
+        StartCoroutine(WaitRotation(angle));
     }
 
-    private IEnumerator WaitRotation()
-    {
+    private IEnumerator WaitRotation(float rotateAngle)
+    {   
         Quaternion startRotation = _transform.rotation;
         Quaternion currentRotation = startRotation;
-        while (Quaternion.Angle(startRotation,currentRotation) < _rotateAngle -_rotateSpeed)
+        while (rotateAngle - Mathf.Round(Quaternion.Angle(startRotation,currentRotation)) != 0)
         {
             currentRotation = _transform.rotation;
             yield return new WaitForFixedUpdate();
         }
+        _transform.rotation = currentRotation;
         ActivateMoveForwardState();
     }
 
     private void ActivateMoveForwardState()
     {
+        _rigidbody.AddForce(Vector3.zero, ForceMode.VelocityChange);
         _currentState = _moveForwardState;
     }
 }
